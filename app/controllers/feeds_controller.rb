@@ -2,6 +2,7 @@ require 'net/http'
 require 'uri'
 require 'rss'
 class FeedsController < ApplicationController
+  include ActionView::Helpers::SanitizeHelper
   # URLのサンプル
   # /feeds?json=%7B"q"%3A"hoge"%2C"feeds"%3A%5B"http%3A%2F%2Fhoge.com"%2C"http%3A%2F%2Ffuga.com"%5D%7D
   #
@@ -50,7 +51,12 @@ class FeedsController < ApplicationController
   end
 
   def match?(item, query)
-    true
+    item_string = sanitize(item.to_s)
+
+    keywords = query.split(' ')
+    keywords.inject(true) do |result, keyword|
+      result and item_string.include?(keyword)
+    end
   end
 
   def each_item(feeds)
