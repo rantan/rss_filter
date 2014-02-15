@@ -32,6 +32,16 @@ group :doc do
   gem 'sdoc', require: false
 end
 
+# irbの代替ツール
+gem 'pry'
+gem 'pry-rails'
+gem 'pry-coolline'
+gem 'pry-nav'
+
+# エラー画面をわかりやすく整形してくれる
+gem 'better_errors'
+gem 'binding_of_caller' # irb/pry(PERL)連携
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.1.2'
 
