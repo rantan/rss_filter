@@ -9,8 +9,6 @@ class FeedsController < ApplicationController
   # feeds - RSSフィードのリスト
   #
   def show
-    query = show_params['q']
-    feeds = show_params['feeds']
     #feeds = ['https://www.ruby-lang.org/ja/feeds/news.rss', 'http://feeds.gizmodo.jp/rss/gizmodo/index.xml', 'http://matome.naver.jp/feed/news']
 
     new_rss = RSS::Maker.make("2.0") do |rss|
@@ -18,13 +16,29 @@ class FeedsController < ApplicationController
       rss.channel.description = "feed sample"
       rss.channel.link = 'http://example.com'
       #rss.channel.about = 'http://example.com'
-      each_items(feeds) do |item|
-        maker_item  = rss.items.new_item
-        copy_item(maker_item, item)
+
+      each_item(feeds_param) do |item|
+        copy_item(rss.items.new_item, item) if match?(item, query_param)
       end
     end
 
     render xml: new_rss.to_s
+  end
+
+  private
+
+  def feeds_param
+    unless @feeds_param
+      uri = URI.parse(request.url)
+      feeds = /feeds=([-_.,!~*'()a-zA-Z0-9%]*)&?/.match(uri.query)[1].split(',')
+      @feeds_param = feeds.map {|feed|URI.unescape(feed)}
+    end
+
+    @feeds_param
+  end
+
+  def query_param
+    params[:q]
   end
 
   def copy_item(maker, channel)
@@ -35,11 +49,11 @@ class FeedsController < ApplicationController
     #maker.category = channel.category
   end
 
-  def show_params
-    @show_params ||= JSON.parse params[:json]
+  def match?(item, query)
+    true
   end
 
-  def each_items(feeds)
+  def each_item(feeds)
     feeds.each do |feed|
       resstr = Net::HTTP.get(URI.parse(feed))
       rssobj = RSS::Parser.parse(resstr)
